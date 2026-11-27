@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сергей Созонов — системный аналитик · финтех</title>
+<meta name="description" content="Портфолио системного аналитика: событийные интеграции, проектирование REST API и контрактов Kafka, модели данных, комплаенс-проверки кредитного конвейера.">
+<meta property="og:title" content="Сергей Созонов — системный аналитик">
+<meta property="og:description" content="Событийные интеграции · REST API · Kafka · AsyncAPI · модели данных · комплаенс">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text x='50' y='69' font-size='52' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>SA</text></svg>">
+<style>
+:root{
+  --bg:#f6f7f9;--fg:#1c2433;--muted:#5b6676;--card:#ffffff;--border:#e3e7ee;
+  --accent:#2563eb;--accent-soft:#eef3fe;--chip:#eef1f6;--chip-fg:#3b4657
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0e1320;--fg:#e8ecf3;--muted:#98a2b3;--card:#161d2e;--border:#263150;
+    --accent:#7cb0ff;--accent-soft:#18233d;--chip:#1c2740;--chip-fg:#c3cbdb
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);line-height:1.65;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.hero{padding:84px 0 30px}
+.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;font-weight:700;margin:0 0 14px}
+h1{font-size:clamp(2.1rem,5.4vw,3.1rem);line-height:1.12;margin:0 0 12px;letter-spacing:-.02em}
+.lead{color:var(--muted);font-size:1.12rem;max-width:64ch;margin:0 0 22px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.pill{background:var(--chip);color:var(--chip-fg);border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:600}
+section{padding:46px 0 6px}
+h2{font-size:1.45rem;margin:0 0 6px;letter-spacing:-.01em}
+h2::before{content:"";display:inline-block;width:26px;height:4px;border-radius:2px;background:var(--accent);margin-right:12px;vertical-align:middle}
+.sec-sub{color:var(--muted);margin:0 0 24px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .2s,transform .2s}
+.card:hover{box-shadow:0 8px 28px rgba(15,23,42,.09);transform:translateY(-2px)}
+.num{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.08em}
+.card h3{margin:0;font-size:1.12rem;line-height:1.35}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.chip{background:var(--chip);color:var(--chip-fg);border-radius:6px;padding:3px 9px;font-size:.76rem;font-weight:600}
+.res{margin-top:auto;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;padding:10px 14px;font-size:.9rem}
+.res b{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px}
+.cardlink{font-size:.85rem;font-weight:700}
+.callout{background:var(--accent-soft);border:1px solid var(--border);border-radius:12px;padding:16px 20px;font-size:.92rem;color:var(--muted);margin:22px 0 0}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;list-style:none;padding:0;margin:0}
+.flow li{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.flow b{display:block;margin-bottom:6px}
+.contacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:0 0 10px;padding:0;list-style:none}
+.clink{display:block;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;font-weight:700}
+.clink span{display:block;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:4px}
+.clink:hover{border-color:var(--accent);text-decoration:none;box-shadow:0 6px 20px rgba(37,99,235,.12)}
+footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;color:var(--muted);font-size:.85rem}
+@media (max-width:560px){.hero{padding:56px 0 20px}section{padding:36px 0 4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Портфолио · системный аналитик</p>
+    <h1>Сергей Созонов</h1>
+    <p class="lead">Системный анализ в финтехе: событийные интеграции, проектирование REST&nbsp;API и контрактов Kafka, модели данных, комплаенс-проверки кредитного конвейера.</p>
+    <ul class="pills">
+      <li class="pill">4+ года в системном анализе</li>
+      <li class="pill">Финтех · SaaS-платформа кредитования</li>
+      <li class="pill">Банки и МФО</li>
+      <li class="pill">Энергетика</li>
+    </ul>
+  </header>
+
+  <section id="about">
+    <h2>Специализация и опыт</h2>
+    <p class="sec-sub">Общий опыт в системном анализе — 4+ года. Домены: финтех (SaaS-платформа кредитования для банков и МФО), энергетика.</p>
+    <div class="callout">Все проекты выполнены в коммерческих проектах и защищены NDA: названия компаний и систем обезличены, артефакты перерисованы, фрагменты контрактов переписаны с нейтральными именами. <b>Методы, паттерны и цифры — реальные.</b></div>
+  </section>
+
+  <section id="projects">
+    <h2>Проекты</h2>
+    <p class="sec-sub">Ключевые проекты — обезличены в рамках NDA, подходы и результаты — реальные.</p>
+    <div class="grid">
+      <article class="card">
+        <span class="num">01</span>
+        <h3>Аналитический дашборд ЛК</h3>
+        <ul class="chips"><li class="chip">реверс-инжиниринг 16+ REST API</li><li class="chip">TTL · квоты · троттлинг</li><li class="chip">Excel-отчёты</li></ul>
+        <div class="res"><b>Ключевой результат</b>Реализован функционал выгрузки двух видов отчётов в UI дашборда ЛК — процессные и метрики. Сформировано ТЗ для front- и back-end.</div>
+        <a class="cardlink" href="https://github.com/SeFlash/portfolio_SA/blob/main/01-dashboard.md">Подробнее →</a>
+      </article>
+      <article class="card">
+        <span class="num">02</span>
+        <h3>Событийная интеграция с коллекторской CRM</h3>
+        <ul class="chips"><li class="chip">Kafka → REST</li><li class="chip">async request-reply</li><li class="chip">идемпотентность</li><li class="chip">маппинг 80+ полей</li></ul>
+        <div class="res"><b>Ключевой результат</b>Сквозной конвейер передачи задолженности.</div>
+        <a class="cardlink" href="https://github.com/SeFlash/portfolio_SA/blob/main/02-collection.md">Подробнее →</a>
+      </article>
+      <article class="card">
+        <span class="num">03</span>
+        <h3>Интеграция с банковской системой</h3>
+        <ul class="chips"><li class="chip">11 контрактов AsyncAPI 3.0</li><li class="chip">модель ошибок</li><li class="chip">outbox</li><li class="chip">DLQ</li><li class="chip">contract-first</li></ul>
+        <div class="res"><b>Ключевой результат</b>Спроектирована и реализована интеграция BPM-процесса и АБС ЦФТ банка через ACL.</div>
+        <a class="cardlink" href="https://github.com/SeFlash/portfolio_SA/blob/main/03-bank.md">Подробнее →</a>
+      </article>
+      <article class="card">
+        <span class="num">04</span>
+        <h3>Микросервис комплаенс-проверок</h3>
+        <ul class="chips"><li class="chip">6 контрактов-коннекторов</li><li class="chip">ФНС · ФССП · Арбитражи</li></ul>
+        <div class="res"><b>Ключевой результат</b>Описаны и реализованы проверки конвейера для ФЛ и ЮЛ в процессе скоринга для выдачи кредита.</div>
+        <a class="cardlink" href="https://github.com/SeFlash/portfolio_SA/blob/main/04-compliance.md">Подробнее →</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="stack">
+    <h2>Стек</h2>
+    <ul class="chips">
+      <li class="chip">REST API</li><li class="chip">OpenAPI / Swagger</li><li class="chip">Apache Kafka</li>
+      <li class="chip">AsyncAPI 3.0</li><li class="chip">JSON Schema</li><li class="chip">MySQL</li>
+      <li class="chip">PostgreSQL</li><li class="chip">SQL</li><li class="chip">UML</li>
+      <li class="chip">BPMN</li><li class="chip">PlantUML</li><li class="chip">Mermaid</li>
+      <li class="chip">Jira</li><li class="chip">Confluence</li><li class="chip">Postman</li>
+      <li class="chip">Git</li><li class="chip">VS Code</li><li class="chip">DBeaver</li>
+      <li class="chip">Draw.io</li><li class="chip">dbdiagram.io</li><li class="chip">StormBPMN</li>
+      <li class="chip">Redpanda</li><li class="chip">Offset Explorer</li><li class="chip">152-ФЗ</li>
+    </ul>
+  </section>
+
+  <section id="how">
+    <h2>Как я работаю</h2>
+    <ul class="flow">
+      <li><b>Contract-first</b>Контракт до кода: AI-автопроверка, ручная сверка, версионирование и CHANGELOG. Для каждого обмена фиксирую полное описание контракта, идемпотентность, маппинги параметров (БД ↔ API, система ↔ система), сценарии поведения при ошибках и недоступности, корреляционные ключи, НфТ.</li>
+      <li><b>Схемы и модели</b>UML — Mermaid, PlantUML; BPMN — StormBPMN, BPMS; ER — dbdiagram, ERStudio (DBML).</li>
+      <li><b>Полный SDLC</b>Весь спектр работ от идеи до приёмки, участвую на всех этапах.</li>
+    </ul>
+  </section>
+
+  <section id="contacts">
+    <h2>Контакты</h2>
+    <ul class="contacts">
+      <li><a class="clink" href="mailto:seflash112@gmail.com"><span>E-mail</span>seflash112@gmail.com</a></li>
+      <li><a class="clink" href="https://t.me/sozonov_serg"><span>Telegram</span>@sozonov_serg</a></li>
+      <li><a class="clink" href="https://vk.ru/sozonovserg"><span>VK</span>vk.ru/sozonovserg</a></li>
+    </ul>
+  </section>
+
+  <footer>© 2026 Сергей Созонов · Сайт — статичная страница в <a href="https://github.com/SeFlash/portfolio_SA">этом репозитории</a>, публикуется через GitHub Pages.</footer>
+</div>
+</body>
+</html>
+
+
