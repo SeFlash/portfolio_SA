@@ -38,6 +38,8 @@ h1{font-size:clamp(2.1rem,5.4vw,3.1rem);line-height:1.12;margin:0 0 12px;letter-
 .stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center}
 .stat b{display:block;font-size:1.75rem;color:var(--accent);letter-spacing:-.02em;line-height:1.2}
 .stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.stat.skill{display:flex;align-items:center;justify-content:center;min-height:88px;padding:14px 16px}
+.stat.skill b{font-size:.95rem;color:var(--accent);font-weight:700;line-height:1.35}
 .cta{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 6px}
 .btn{display:inline-block;border-radius:10px;padding:12px 22px;font-weight:700;font-size:.95rem;border:1px solid transparent;transition:transform .15s,box-shadow .15s,border-color .15s}
 .btn:hover{text-decoration:none;transform:translateY(-1px)}
@@ -104,10 +106,11 @@ footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;co
     </ul>
     <div class="stats">
       <div class="stat"><b data-n="4" data-suffix="+">4+</b><span>года в системном анализе</span></div>
-      <div class="stat"><b data-n="16" data-suffix="+">16+</b><span>REST API документировано</span></div>
-      <div class="stat"><b data-n="11">11</b><span>контрактов AsyncAPI</span></div>
-      <div class="stat"><b data-n="80" data-suffix="+">80+</b><span>полей маппинга в интеграциях</span></div>
-      <div class="stat"><b data-n="6">6</b><span>госпроверок спроектировано</span></div>
+      <div class="stat skill"><b>Проектирование REST API</b></div>
+      <div class="stat skill"><b>Проектирование AsyncAPI</b></div>
+      <div class="stat skill"><b>Работа с БД (SQL)</b></div>
+      <div class="stat skill"><b>Моделирование UML, BPMN, ERD</b></div>
+      <div class="stat skill"><b>Управление требованиями</b></div>
     </div>
     <div class="cta">
       <a class="btn btn-primary" href="https://t.me/sozonov_serg">Написать в Telegram</a>
@@ -223,7 +226,7 @@ footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;co
 </div>
 <script>
 (function(){
-  document.querySelectorAll('.stat b').forEach(function(el){
+  document.querySelectorAll('.stat b[data-n]').forEach(function(el){
     var target=parseFloat(el.dataset.n)||0,suffix=el.dataset.suffix||'',t0=null,dur=900;
     function step(t){if(!t0)t0=t;var p=Math.min((t-t0)/dur,1);p=1-Math.pow(1-p,3);
       el.textContent=Math.round(target*p)+suffix;if(p<1)requestAnimationFrame(step);}
