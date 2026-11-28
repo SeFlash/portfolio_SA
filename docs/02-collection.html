@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проект 2 · Событийная интеграция с коллекторской CRM — Сергей Созонов</title>
+<meta name="description" content="Проект: событийная интеграция с коллекторской CRM. Kafka → адаптер → REST, async request-reply, идемпотентность, маппинг 80+ полей.">
+<meta property="og:title" content="Сергей Созонов — системный аналитик · финтех">
+<meta property="og:description" content="Событийные интеграции · REST API · Kafka · AsyncAPI · модели данных · комплаенс">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text x='50' y='69' font-size='52' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>SA</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="phead">
+    <a class="back" href="./">← Все проекты</a>
+    <p class="eyebrow">Портфолио · системный аналитик</p>
+    <h1>Проект 2. Событийная интеграция с коллекторской CRM</h1>
+    <blockquote class="pquote">Финтех, SaaS-платформа кредитования · роль: системный аналитик (полное ТЗ интеграции) · проект под NDA, названия обезличены</blockquote>
+  </header>
+  <article class="pbody">
+    <h2>Контекст</h2>
+    <p>Платформа должна передавать просроченную задолженность во <b>внешнюю коллекторскую CRM</b>: контракты (кейсы), платежи, смены статусов. Внешняя сторона принимает только REST; внутенние события используют Kafka.</p>
+    <h2>Задача</h2>
+    <p>Спроектировать событийно-ориентированную интеграцию «ядро платформы → внешняя CRM»: полный цикл — триггеры, контракты, транспорт, обработка ошибок, идемпотентность, мониторинг.</p>
+    <h2>Решение: Kafka → адаптер → REST, с асинхронным подтверждением</h2>
+    <p>Вместо прямого «Kafka-консюмер пишет в CRM» — выделенный <b>сервис-адаптер</b>, который: фильтрует события по бизнес-условиям, обогащает данные обратными вызовами к ядру (REST), трансформирует форматы, батчит и отправляет.</p>
+    <p><b>8 типов обрабатываемых событий</b> (контракт исходящего топика ядра):</p>
+    <table class="tbl">
+      <tr><th>Событие</th><th>Условие обработки</th></tr>
+      <tr><td><code>CONTRACT_STATUS_CHANGED</code></td><td>статус IN («Просроченный», «Реструктурированный просроченный»)</td></tr>
+      <tr><td><code>CONTRACT_CLOSE</code></td><td>статус закрытия = «Закрыт по цессии»</td></tr>
+      <tr><td><code>CONTRACT_PROLONGATION</code></td><td>пролонгация контракта</td></tr>
+      <tr><td><code>CONTRACT_NEW_SCHEDULE</code></td><td>новый график (кредитные каникулы и др.)</td></tr>
+      <tr><td><code>FUNDTRANSACTION_SAVE</code></td><td>платёж по контракту</td></tr>
+      <tr><td><code>CONTRACT_BALANCE_CHANGED</code> / <code>CONTRACT_BALANCE_CHANGE_ROLLBACK</code></td><td>snapshot-ы баланса</td></tr>
+      <tr><td><code>CONTRACT_REPAYMENT_ROLLBACK</code></td><td>откат платежа</td></tr>
+    </table>
+    <div class="mermaid-box"><pre class="mermaid">
+sequenceDiagram
+    participant K as Kafka (события ядра)
+    participant A as Адаптер
+    participant Core as Core API (обогащение)
+    participant CRM as Внешняя CRM
+
+    K->>A: событие (CONTRACT_STATUS_CHANGED: «Просроченный»)
+    A->>Core: GET данные контракта/должника (маппинг 80+ полей)
+    A->>CRM: POST /api/v1/cases {batch: 1 кейс, webhook_url}
+    CRM-->>A: 202 Accepted + batch_id (статусы queued — не финал!)
+    CRM-->>A: POST webhook: per-item результат (created / error+code)
+    alt временная ошибка (сеть, 5xx)
+        A->>A: ретрай с backoff, лимит попыток → парковка + алерт
+    else бизнес-ошибка (validation_error)
+        A->>A: фиксация в журнале, разбор в ручном контуре
+    end
+    A->>A: резерв: GET статуса батча (если webhook не пришёл за SLA)
+    </pre></div>
+    <h2>Ключевые решения</h2>
+    <ol>
+      <li><b>Async Request-Reply</b>: HTTP 202 + batch_id + webhook с per-item статусами — CRM не создаёт сущности мгновенно, финал приходит колбэком</li>
+      <li><b>Идемпотентность</b> по бизнес-ключам: <code>external_case_id</code> / <code>external_payment_id</code>; повтор с полным совпадением → «безопасный дубль» (успех), с расхождением → «конфликт» (ошибка отправителя) — задвоение передачи исключено</li>
+      <li><b>Малые батчи</b> («1 батч = 1 сущность») — осознанный trade-off: granular per-item статусы и простая диагностика вместо throughput</li>
+      <li><b>Каталог кодов ошибок</b>: валидация полей (по каждому полю!), «кейс уже существует», «конфликт платежа», «кейс не найден» — каждый код имеет владельца и маршрут (автоповтор / ручной разбор)</li>
+      <li><b>Мониторинг</b>: корреляция external_id + batch_id; резервный опрос статусов при потерянном webhook</li>
+    </ol>
+    <h2>Эволюция контракта (прод)</h2>
+    <p>Контракт исходящего события изменялся: за время проекта добавлены обработка смен статусов, новые поля и роуты обогащения, ужесточена валидация (номера телефонов) — все изменения проводились через версионирование и CHANGELOG без поломки потребителей.</p>
+    <h2>Результат</h2>
+    <ul>
+      <li>Полное ТЗ (13 разделов): триггеры, контракты, транспорт, ошибки, идемпотентность, НФТ, приёмка; маппинг <b>80+ полей</b> на <b>15+ методов</b> REST API ядра</li>
+      <li>ER-модель сервиса-адаптера и сервисные API контроля статусов (кейс/платёж/батч)</li>
+      <li>Интеграция в проде, эволюция контракта через версии</li>
+    </ul>
+    <h2>Технологический стек</h2>
+    <ul class="chips">
+      <li class="chip">Apache Kafka</li><li class="chip">REST API (HTTPS, JSON, API Key/Bearer)</li>
+      <li class="chip">webhook</li><li class="chip">идемпотентность</li><li class="chip">backoff</li>
+      <li class="chip">JSON-схемы</li><li class="chip">draw.io</li><li class="chip">Confluence</li>
+    </ul>
+  </article>
+  <footer>© 2026 Сергей Созонов · <a href="./">← Все проекты</a> · Telegram: <a href="https://t.me/sozonov_serg">@sozonov_serg</a> · <a href="mailto:seflash112@gmail.com">seflash112@gmail.com</a></footer>
+</div>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>
+
