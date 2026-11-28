@@ -34,6 +34,27 @@ h1{font-size:clamp(2.1rem,5.4vw,3.1rem);line-height:1.12;margin:0 0 12px;letter-
 .lead{color:var(--muted);font-size:1.12rem;max-width:64ch;margin:0 0 22px}
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
 .pill{background:var(--chip);color:var(--chip-fg);border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:26px 0 10px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center}
+.stat b{display:block;font-size:1.75rem;color:var(--accent);letter-spacing:-.02em;line-height:1.2}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 6px}
+.btn{display:inline-block;border-radius:10px;padding:12px 22px;font-weight:700;font-size:.95rem;border:1px solid transparent;transition:transform .15s,box-shadow .15s,border-color .15s}
+.btn:hover{text-decoration:none;transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{box-shadow:0 6px 18px rgba(37,99,235,.35)}
+.btn-ghost{border-color:var(--border);color:var(--fg);background:var(--card)}
+.btn-ghost:hover{border-color:var(--accent)}
+.pipeline{display:flex;flex-wrap:wrap;gap:10px;list-style:none;padding:0;margin:0 0 26px;counter-reset:pl}
+.pipeline li{position:relative;flex:1 1 140px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px 12px 44px;font-size:.84rem;font-weight:600}
+.pipeline li::before{counter-increment:pl;content:counter(pl);position:absolute;left:13px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;font-weight:800}
+.artifact-h{font-size:1.05rem;margin:34px 0 12px}
+pre.code{background:#0d1117;color:#c9d1d9;border:1px solid #21262d;border-radius:12px;padding:16px 18px;overflow:auto;font-size:.8rem;line-height:1.55;margin:0 0 10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre.code .k{color:#79c0ff}pre.code .s{color:#a5d6ff}pre.code .c{color:#8b949e}pre.code .n{color:#ff7b72}
+.artifact-note{color:var(--muted);font-size:.82rem;margin:0}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
 section{padding:46px 0 6px}
 h2{font-size:1.45rem;margin:0 0 6px;letter-spacing:-.01em}
 h2::before{content:"";display:inline-block;width:26px;height:4px;border-radius:2px;background:var(--accent);margin-right:12px;vertical-align:middle}
@@ -58,6 +79,15 @@ h2::before{content:"";display:inline-block;width:26px;height:4px;border-radius:2
 .clink:hover{border-color:var(--accent);text-decoration:none;box-shadow:0 6px 20px rgba(37,99,235,.12)}
 footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;color:var(--muted);font-size:.85rem}
 @media (max-width:560px){.hero{padding:56px 0 20px}section{padding:36px 0 4px}}
+@media print{
+  body{background:#fff;color:#111}
+  .no-print{display:none}
+  .cta{display:none}
+  section{padding:18px 0 2px}
+  .card,.stat{break-inside:avoid;box-shadow:none;transform:none}
+  .reveal{opacity:1;transform:none}
+  h2{break-after:avoid}
+}
 </style>
 </head>
 <body>
@@ -72,6 +102,17 @@ footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;co
       <li class="pill">Банки и МФО</li>
       <li class="pill">Энергетика</li>
     </ul>
+    <div class="stats">
+      <div class="stat"><b data-n="4" data-suffix="+">4+</b><span>года в системном анализе</span></div>
+      <div class="stat"><b data-n="16" data-suffix="+">16+</b><span>REST API документировано</span></div>
+      <div class="stat"><b data-n="11">11</b><span>контрактов AsyncAPI</span></div>
+      <div class="stat"><b data-n="80" data-suffix="+">80+</b><span>полей маппинга в интеграциях</span></div>
+      <div class="stat"><b data-n="6">6</b><span>госпроверок спроектировано</span></div>
+    </div>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://t.me/sozonov_serg">Написать в Telegram</a>
+      <a class="btn btn-ghost" href="#projects">Смотреть проекты ↓</a>
+    </div>
   </header>
 
   <section id="about">
@@ -89,28 +130,28 @@ footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;co
         <h3>Аналитический дашборд ЛК</h3>
         <ul class="chips"><li class="chip">реверс-инжиниринг 16+ REST API</li><li class="chip">TTL · квоты · троттлинг</li><li class="chip">Excel-отчёты</li></ul>
         <div class="res"><b>Ключевой результат</b>Реализован функционал выгрузки двух видов отчётов в UI дашборда ЛК — процессные и метрики. Сформировано ТЗ для front- и back-end.</div>
-        <a class="cardlink" target="_blank" href="https://github.com/SeFlash/portfolio_SA/blob/main/docs/01-dashboard.md">Подробнее →</a>
+        <a class="cardlink" href="01-dashboard.html">Подробнее →</a>
       </article>
       <article class="card">
         <span class="num">02</span>
         <h3>Событийная интеграция с коллекторской CRM</h3>
         <ul class="chips"><li class="chip">Kafka → REST</li><li class="chip">async request-reply</li><li class="chip">идемпотентность</li><li class="chip">маппинг 80+ полей</li></ul>
         <div class="res"><b>Ключевой результат</b>Сквозной конвейер передачи задолженности.</div>
-        <a class="cardlink" target="_blank" href="https://github.com/SeFlash/portfolio_SA/blob/main/docs/02-collection.md">Подробнее →</a>
+        <a class="cardlink" href="02-collection.html">Подробнее →</a>
       </article>
       <article class="card">
         <span class="num">03</span>
         <h3>Интеграция с банковской системой</h3>
         <ul class="chips"><li class="chip">11 контрактов AsyncAPI 3.0</li><li class="chip">модель ошибок</li><li class="chip">outbox</li><li class="chip">DLQ</li><li class="chip">contract-first</li></ul>
         <div class="res"><b>Ключевой результат</b>Спроектирована и реализована интеграция BPM-процесса и АБС ЦФТ банка через ACL.</div>
-        <a class="cardlink" target="_blank" href="https://github.com/SeFlash/portfolio_SA/blob/main/docs/03-bank.md">Подробнее →</a>
+        <a class="cardlink" href="03-bank.html">Подробнее →</a>
       </article>
       <article class="card">
         <span class="num">04</span>
         <h3>Микросервис комплаенс-проверок</h3>
         <ul class="chips"><li class="chip">6 контрактов-коннекторов</li><li class="chip">ФНС · ФССП · Арбитражи</li></ul>
         <div class="res"><b>Ключевой результат</b>Описаны и реализованы проверки конвейера для ФЛ и ЮЛ в процессе скоринга для выдачи кредита.</div>
-        <a class="cardlink" target="_blank" href="https://github.com/SeFlash/portfolio_SA/blob/main/docs/04-compliance.md">Подробнее →</a>
+        <a class="cardlink" href="04-compliance.html">Подробнее →</a>
       </article>
     </div>
   </section>
@@ -131,11 +172,41 @@ footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;co
 
   <section id="how">
     <h2>Как я работаю</h2>
+    <ol class="pipeline">
+      <li>Идея и требования</li>
+      <li>Контракт (API / AsyncAPI)</li>
+      <li>AI-автопроверка</li>
+      <li>Ручная сверка</li>
+      <li>Разработка</li>
+      <li>Приёмка</li>
+    </ol>
     <ul class="flow">
       <li><b>Contract-first</b>Контракт до кода: AI-автопроверка, ручная сверка, версионирование и CHANGELOG. Для каждого обмена фиксирую полное описание контракта, идемпотентность, маппинги параметров (БД ↔ API, система ↔ система), сценарии поведения при ошибках и недоступности, корреляционные ключи, НфТ.</li>
       <li><b>Схемы и модели</b>UML — Mermaid, PlantUML; BPMN — StormBPMN, BPMS; ER — dbdiagram, ERStudio (DBML).</li>
       <li><b>Полный SDLC</b>Весь спектр работ от идеи до приёмки, участвую на всех этапах.</li>
     </ul>
+    <h3 class="artifact-h">Артефакт: фрагмент контракта AsyncAPI 3.0 (обезличен, по мотивам проекта 3)</h3>
+    <pre class="code"><span class="k">asyncapi</span>: <span class="n">3.0.0</span>
+<span class="k">info</span>:
+  <span class="k">title</span>: <span class="s">"Событие изменения статуса контракта"</span>
+<span class="k">channels</span>:
+  <span class="k">contract.banking.v1</span>:
+    <span class="k">address</span>: contract.banking.v1
+    <span class="k">messages</span>:
+      <span class="k">contractStatusChanged</span>:
+        <span class="k">payload</span>:
+          <span class="k">type</span>: object
+          <span class="k">required</span>: [event_id, contract_id, status, occurred_at]
+          <span class="k">properties</span>:
+            <span class="k">event_id</span>: { <span class="k">type</span>: string, <span class="k">format</span>: uuid }            <span class="c"># дедупликация</span>
+            <span class="k">contract_id</span>: { <span class="k">type</span>: string }
+            <span class="k">status</span>: { <span class="k">type</span>: string, <span class="k">enum</span>: [ACTIVE, DELINQUENT, CLOSED] }
+            <span class="k">occurred_at</span>: { <span class="k">type</span>: string, <span class="k">format</span>: date-time }
+<span class="k">x-error-model</span>:
+  <span class="k">validation_error</span>:    { <span class="k">code</span>: <span class="n">422</span>, <span class="k">retry</span>: <span class="n">false</span> }
+  <span class="k">duplicate_event</span>:    { <span class="k">treated_as</span>: <span class="s">success</span> }               <span class="c"># идемпотентность</span>
+  <span class="k">service_unavailable</span>: { <span class="k">code</span>: <span class="n">503</span>, <span class="k">retry</span>: <span class="n">true</span>, <span class="k">backoff</span>: <span class="s">exponential</span> }</pre>
+    <p class="artifact-note">Синтетический пример: показывает, как фиксирую идемпотентность, статусные модели и единую error-model прямо в контракте.</p>
   </section>
 
   <section id="contacts">
@@ -145,10 +216,26 @@ footer{margin-top:60px;border-top:1px solid var(--border);padding:26px 0 40px;co
       <li><a class="clink" href="https://t.me/sozonov_serg"><span>Telegram</span>@sozonov_serg</a></li>
       <li><a class="clink" href="https://vk.ru/sozonovserg"><span>VK</span>vk.ru/sozonovserg</a></li>
     </ul>
+    <p class="no-print" style="margin:14px 0 0"><a class="btn btn-ghost" href="#" onclick="window.print();return false">Печать / PDF</a></p>
   </section>
 
-  <footer>© 2026 Сергей Созонов · Сайт — статичная страница в <a href="https://github.com/SeFlash/portfolio_SA">этом репозитории</a>, публикуется через GitHub Pages.</footer>
+  <footer>© 2026 Сергей Созонов · Сайт — статичный сайт из 5 страниц, исходники — в <a href="https://github.com/SeFlash/portfolio_SA">этом репозитории</a>, публикуется через GitHub Pages.</footer>
 </div>
+<script>
+(function(){
+  document.querySelectorAll('.stat b').forEach(function(el){
+    var target=parseFloat(el.dataset.n)||0,suffix=el.dataset.suffix||'',t0=null,dur=900;
+    function step(t){if(!t0)t0=t;var p=Math.min((t-t0)/dur,1);p=1-Math.pow(1-p,3);
+      el.textContent=Math.round(target*p)+suffix;if(p<1)requestAnimationFrame(step);}
+    requestAnimationFrame(step);
+  });
+  document.querySelectorAll('section,.card').forEach(function(el){el.classList.add('reveal')});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}
+  })},{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+})();
+</script>
 </body>
 </html>
 

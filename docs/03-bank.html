@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проект 3 · Событийная интеграция с банковской системой: 11 контрактов — Сергей Созонов</title>
+<meta name="description" content="Проект: событийная интеграция с банковской системой. 11 контрактов AsyncAPI 3.0, единая модель ошибок, outbox, DLQ, contract-first, аудит спецификаций.">
+<meta property="og:title" content="Сергей Созонов — системный аналитик · финтех">
+<meta property="og:description" content="Событийные интеграции · REST API · Kafka · AsyncAPI · модели данных · комплаенс">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text x='50' y='69' font-size='52' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>SA</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="phead">
+    <a class="back" href="./">← Все проекты</a>
+    <p class="eyebrow">Портфолио · системный аналитик</p>
+    <h1>Проект 3. Событийная интеграция с банковской системой: 11 контрактов</h1>
+    <blockquote class="pquote">Финтех · роль: системный аналитик (контракты и модель обмена) · проект под NDA, названия обезличены</blockquote>
+  </header>
+  <article class="pbody">
+    <h2>Контекст</h2>
+    <p>Три системы должны обмениваться событиями и операциями: <b>оркестратор бизнес-процессов (исполняемая BPMN-схема)</b>, <b>сервис-адаптер (ACL)</b> и <b>внешняя банковская система заказчика (АБС ЦФТ)</b>. Обмен — событийный, через Kafka; операции — бинарные (успех/ошибка) с полным жизненным циклом.</p>
+    <h2>Задача</h2>
+    <p>Спроектировать контрактный слой интеграции + полное описание сервиса: контракты всех операций, маппинги данных, единую модель обработки ошибок, правила трансформации данных, и провести аудит уже написанных спецификаций команды банка.</p>
+    <h2>Архитектура обмена</h2>
+    <div class="mermaid-box"><pre class="mermaid">
+flowchart LR
+    O["Оркестратор бизнес-процессов (BPM)"] -- "события/команды" --> P["Сервис-адаптер (ACL)"]
+    P -- "11 контрактов операций" --> B["Внешняя банковская система (АБС ЦФТ)"]
+    B -- "результаты, ошибки, ответы" --> P
+    P -- "результаты операций" --> O
+    </pre></div>
+    <h2>Что сделал</h2>
+    <ol>
+      <li><b>11 интеграционных контрактов</b> (AsyncAPI 3.0, JSON Schema + текстовые спецификации) для событийного обмена по Kafka — по одному на каждую бизнес-операцию, с версионированием и CHANGELOG</li>
+      <li><b>Единая модель обработки ошибок для 11 операций</b>:
+        <ul>
+          <li>каталоги кодов ошибок по каждой операции</li>
+          <li><b>правила идемпотентности</b> (ключи операций, поведение при повторе)</li>
+          <li>гарантия согласованной доставки (<b>outbox</b>)</li>
+          <li><b>стратегия DLQ</b> + процесс разбора</li>
+          <li>обработка <b>неопределённых и поздних ответов</b> (таймаут ≠ отказ: перезапрос статуса у исполнителя)</li>
+        </ul>
+      </li>
+      <li><b>Contract-first на практике</b>:
+        <ul>
+          <li>маппинги полей между тремя системами (сквозной реестр <b>150+ параметров</b>)</li>
+          <li>правила валидации и трансформации форматов</li>
+          <li><b>автоматическая проверка примеров сообщений против схем</b> — все контракты валидировались до передачи в разработку</li>
+        </ul>
+      </li>
+      <li><b>Аудит спецификаций команды банка</b>: сверка независимо написанных описаний одного и того же обмена → <b>реестр 19 расхождений</b> с приоритизацией P0/P1/P2, отчёт доработок, бэклог вопросов к внешнему партнёру с готовыми решениями</li>
+      <li><b>Тест-кейсы</b>: позитивные/негативные, минимальные обязательные наборы, граничные значения; диаграммы последовательности (Mermaid) и таблицы решений</li>
+      <li><b>Спецификация сервиса</b> с полным описанием механизма работы и назначения сервиса для передачи заказчику.</li>
+    </ol>
+    <h2>Пример обезличенного фрагмента контракта операции</h2>
+    <pre class="code"><span class="k">asyncapi</span>: <span class="n">3.0.0</span>
+<span class="k">info</span>:
+  <span class="k">title</span>: <span class="s">Операция "Изменение статуса объекта" (обезличено)</span>
+<span class="k">channels</span>:
+  <span class="k">partner.events.v1</span>:
+    <span class="k">address</span>: partner.events.v1
+    <span class="k">messages</span>:
+      <span class="k">objectStatusChanged</span>:
+        <span class="k">payload</span>:
+          <span class="k">type</span>: object
+          <span class="k">required</span>: [external_id, status, occurred_at]
+          <span class="k">properties</span>:
+            <span class="k">external_id</span>: { <span class="k">type</span>: string, <span class="k">maxLength</span>: <span class="n">50</span> }
+            <span class="k">status</span>: { <span class="k">type</span>: string, <span class="k">enum</span>: [ACTIVE, DELINQUENT, CLOSED] }
+            <span class="k">occurred_at</span>: { <span class="k">type</span>: string, <span class="k">format</span>: date-time }
+<span class="k">operations</span>:
+  <span class="k">onObjectStatusChanged</span>:
+    <span class="k">action</span>: receive
+    <span class="k">channel</span>: partner.events.v1</pre>
+    <h2>Результат</h2>
+    <ul>
+      <li>11 контрактов в проде, единая модель ошибок закрыла «неописанные сценарии», которые до этого всплывали на стыке команд</li>
+      <li>Аудит документации команды банка</li>
+      <li>Автопроверка схем стала практикой команды (контракты больше не расходились с примерами)</li>
+    </ul>
+    <h2>Технологический стек</h2>
+    <ul class="chips">
+      <li class="chip">Apache Kafka</li><li class="chip">AsyncAPI 3.0</li><li class="chip">JSON Schema</li>
+      <li class="chip">outbox</li><li class="chip">DLQ</li><li class="chip">идемпотентность</li>
+      <li class="chip">версионирование контрактов</li><li class="chip">Python (валидация)</li>
+      <li class="chip">Mermaid</li><li class="chip">Redpanda</li><li class="chip">Offset Explorer</li>
+      <li class="chip">VS Code</li><li class="chip">GitLab</li>
+    </ul>
+  </article>
+  <footer>© 2026 Сергей Созонов · <a href="./">← Все проекты</a> · Telegram: <a href="https://t.me/sozonov_serg">@sozonov_serg</a> · <a href="mailto:seflash112@gmail.com">seflash112@gmail.com</a></footer>
+</div>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>
+

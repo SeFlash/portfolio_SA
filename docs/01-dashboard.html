@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проект 1 · Выгрузки Excel-отчётов для дашборда ЛК — Сергей Созонов</title>
+<meta name="description" content="Проект: реализация выгрузки Excel-отчётов для аналитического дашборда ЛК. Реверс-инжиниринг 16+ REST API, async request-reply, TTL/квоты/троттлинг, 152-ФЗ.">
+<meta property="og:title" content="Сергей Созонов — системный аналитик · финтех">
+<meta property="og:description" content="Событийные интеграции · REST API · Kafka · AsyncAPI · модели данных · комплаенс">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text x='50' y='69' font-size='52' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>SA</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="phead">
+    <a class="back" href="./">← Все проекты</a>
+    <p class="eyebrow">Портфолио · системный аналитик</p>
+    <h1>Проект 1. Реализация выгрузки Excel-отчётов для аналитического дашборда личного кабинета</h1>
+    <blockquote class="pquote">Финтех, SaaS-платформа кредитования · роль: системный аналитик (полный цикл — от требований до приёмки) · проект под NDA, детали обезличены</blockquote>
+  </header>
+  <article class="pbody">
+    <h2>Контекст</h2>
+    <p>Личный кабинет клиента платформы содержит дашборд воронок (конверсия по шагам процессов). Пользователям-тенантам (десятки организаций) нужны выгрузки в Excel для удобства проведения аналитики.</p>
+    <h2>Задача</h2>
+    <p>Спроектировать функционал выгрузки Excel-отчётов из дашборда: от сбора требований до ТЗ для frontend- и backend-команд.</p>
+    <h2>Моя роль и что сделал</h2>
+    <ol>
+      <li><b>Обследование микросервиса аналитики</b>: реверс-инжиниринг и документирование <b>16+ REST API методов</b> (realtime/ретро-срезы, детализация с пагинацией, мульти-тенантность, авторизация по заголовку)</li>
+      <li><b>Анализ модели данных MySQL</b>: рабочие таблицы процессов и взаимодействий, JSON-колонки с клиентскими атрибутами; составил маппинг полей отчётов на таблицы БД</li>
+      <li><b>Проектирование API-контракта</b> доработки существующих эндпоинтов (параметризация) и новых методов</li>
+      <li><b>НФТ и защита от перегрузки</b>: TTL 72 ч на файлы, анти-дубли запросов, троттлинг, квоты на тенанта</li>
+      <li><b>Описание 2 видов Excel-отчётов</b> (включая воронку метрик конверсии): формулы расчёта показателей, словарь локализации шагов EN→RU, проработка и согласование набора полей отчётов</li>
+      <li><b>ПДн</b>: белый список полей, маскирование, соответствие 152-ФЗ</li>
+      <li><b>Процесс</b>: протокол решений, реестр открытых вопросов, критерии приёмки; итоговое ТЗ (Markdown), описание микросервиса и методов (Confluence)</li>
+    </ol>
+    <h2>Ключевое решение: Async Request-Reply вместо синхронного отчёта</h2>
+    <p>Диаграмма последовательности:</p>
+    <div class="mermaid-box"><pre class="mermaid">
+sequenceDiagram
+    participant U as Пользователь ЛК
+    participant API as API отчётов
+    participant W as Worker генерации
+    participant S as Хранилище файлов
+
+    U->>API: POST /reports {параметры}
+    API->>API: анти-дубли: активная задача с теми же параметрами?
+    API-->>U: 202 Accepted + task_id (статус «В обработке»)
+    API->>W: задача в очередь
+    W->>S: файл (TTL 72 ч)
+    U->>API: GET /reports/{id} (адаптивный polling)
+    API-->>U: 200 Готово → ссылка
+    U->>S: GET файл (повторно — без регенерации)
+    </pre></div>
+    <p>Статусная строка с информацией по генерации отчётов реализована через адаптивный polling:</p>
+    <ul>
+      <li>после успешной отправки формы — инвалидация кэша списка и немедленный refetch;</li>
+      <li>если в списке есть <code>pending</code>-записи — опрос списка каждые <b>7 секунд</b>;</li>
+      <li>готовые записи — фоновое обновление раз в <b>60 секунд</b>;</li>
+      <li>при опустошении <code>pending</code>-списка — принудительный однократный refetch;</li>
+      <li>при пустом <code>pending</code>-списке агрессивный опрос отключается.</li>
+    </ul>
+    <h2>Результат</h2>
+    <ul>
+      <li>2 вида отчётов в проде (метрики и процессы) по 3 разным процессам, включая воронку конверсии по шагам процессов</li>
+      <li>Полное ТЗ (структура: требования → НФТ → модель данных → контракты REST API → критерии приемки → приёмка)</li>
+      <li>Защита от перегрузки (квоты/троттлинг/TTL) спроектирована до старта разработки</li>
+      <li>Реализация через микросервисную архитектуру, используя обогащение данных через обращение к финансовому ядру</li>
+    </ul>
+    <h2>Технологический стек</h2>
+    <ul class="chips">
+      <li class="chip">REST API</li><li class="chip">MySQL</li><li class="chip">JSON</li>
+      <li class="chip">async request-reply</li><li class="chip">polling</li>
+      <li class="chip">Confluence</li><li class="chip">Jira</li><li class="chip">Markdown</li>
+    </ul>
+  </article>
+  <footer>© 2026 Сергей Созонов · <a href="./">← Все проекты</a> · Telegram: <a href="https://t.me/sozonov_serg">@sozonov_serg</a> · <a href="mailto:seflash112@gmail.com">seflash112@gmail.com</a></footer>
+</div>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>
